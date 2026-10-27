@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#2563eb">
+  <meta name="description" content="VakkiAI Web — mobile-friendly AI assistant with text and voice input.">
+  <title>VakkiAI Web — Live AI Assistant</title>
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" href="./icon.svg" type="image/svg+xml">
+  <link rel="icon" href="./icon-192.png" sizes="192x192" type="image/png">
+  <link rel="apple-touch-icon" href="./icon-192.png">
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="logo" aria-hidden="true">V</span>
+      <div>
+        <div class="brand-line">
+          <h1>VakkiAI</h1>
+          <span class="live-badge">LIVE</span>
+        </div>
+        <p class="tagline">AI assistant for your tablet</p>
+      </div>
+    </div>
+    <div class="status" aria-live="polite">
+      <span id="statusDot" class="status-dot ok" aria-hidden="true"></span>
+      <span id="statusText">Starting…</span>
+    </div>
+  </header>
+
+  <main class="app-shell">
+    <section class="card intro-card">
+      <div>
+        <h2>Namaste 👋</h2>
+        <p class="muted">
+          Command type karo ya mic dabao. AI Hinglish me jawab dega. Purane notes context me
+          daalo, deep idea mode on rakho, aur tayyar note ko seedha Xiaomi Notes me bhejo —
+          server par permanent database nahi hai.
+        </p>
+      </div>
+      <div class="chips" aria-label="Features">
+        <span class="chip">Text</span>
+        <span class="chip">Voice</span>
+        <span class="chip">Hinglish</span>
+        <span class="chip">Notes</span>
+        <span class="chip">Safe</span>
+      </div>
+    </section>
+
+    <section id="configWarning" class="card warning-card" hidden>
+      <strong>API key missing.</strong>
+      <span>Render service ke Environment settings me <code>OPENROUTER_API_KEY</code> add karo.</span>
+    </section>
+
+    <section class="card chat-card" aria-label="Conversation">
+      <div class="card-title-row">
+        <h2>Conversation</h2>
+        <span id="offlineBadge" class="offline-badge" hidden>Offline</span>
+      </div>
+      <div id="chat" class="chat" role="log" aria-live="polite" aria-relevant="additions"></div>
+    </section>
+
+    <section class="card composer-card">
+      <label for="command"><strong>Your command</strong></label>
+      <textarea id="command" rows="3" maxlength="4000" placeholder="Example: Admin Panel ke features ki notes banao…"></textarea>
+      <div class="meta-row">
+        <span id="charCount" class="muted small">0 / 4000</span>
+        <span id="voiceSupport" class="muted small">Checking voice support…</span>
+      </div>
+
+      <div class="button-grid">
+        <button id="sendBtn" class="btn primary" type="button">Send</button>
+        <button id="voiceStartBtn" class="btn" type="button">🎤 Start voice</button>
+        <button id="voiceStopBtn" class="btn" type="button" disabled>⏹ Stop voice</button>
+        <button id="cancelBtn" class="btn ghost" type="button" disabled>Cancel</button>
+        <button id="clearBtn" class="btn ghost" type="button">Clear</button>
+      </div>
+
+      <div class="field-row">
+        <label for="language">Voice language</label>
+        <select id="language">
+          <option value="hi-IN">Hinglish / Hindi (India)</option>
+          <option value="en-IN">English (India)</option>
+          <option value="en-US">English (US)</option>
+        </select>
+      </div>
+      <p class="hint">
+        Voice ke liye Chrome/Edge, HTTPS, microphone permission aur internet chahiye.
+        Agar voice kaam na kare to text input use karo.
+      </p>
+    </section>
+
+    <section class="card context-card">
+      <div class="card-title-row">
+        <h2>Notes context</h2>
+        <span class="chip">Device notes</span>
+      </div>
+      <p class="hint">
+        Apne Xiaomi/Redmi Notes ka purana text yahan paste karo, ya .txt/.md file import karo.
+        AI agle idea me in notes ko background ki tarah use karega. Ye text sirf is tablet ke
+        browser me rahta hai; server par save nahi hota.
+      </p>
+      <label for="notesContext"><strong>Purane / future notes</strong></label>
+      <textarea id="notesContext" class="context-textarea" rows="5" maxlength="12000" placeholder="Example: pichhle notes, ideas, plans, ya koi bhi text…"></textarea>
+      <div class="toggle-row">
+        <label for="useNotesContext">
+          <input id="useNotesContext" type="checkbox" checked>
+          AI ko ye notes context bhejo
+        </label>
+        <label for="deepIdeaMode">
+          <input id="deepIdeaMode" type="checkbox" checked>
+          Deep idea mode (thoda time lagega, achha idea milega)
+        </label>
+      </div>
+      <div class="field-row stacked">
+        <label for="notesFile">Import .txt / .md from device</label>
+        <input id="notesFile" type="file" accept=".txt,.md,text/plain,text/markdown" multiple>
+      </div>
+      <div class="button-grid">
+        <button id="importNotesBtn" class="btn" type="button">Import file</button>
+        <button id="clearContextBtn" class="btn ghost" type="button">Clear context</button>
+      </div>
+      <p class="hint">
+        Tip: PWA install karne ke baad aap Xiaomi Notes se <strong>Share → VakkiAI</strong> bhi
+        kar sakte ho; shared text yahin context me add ho jayega.
+      </p>
+    </section>
+
+    <section id="notesPanel" class="card notes-card" hidden>
+      <div class="card-title-row">
+        <h2>Notes</h2>
+        <span class="chip">Local</span>
+      </div>
+      <pre id="notesText" class="notes-preview"></pre>
+      <div class="field-row">
+        <label for="noteFilename">Filename</label>
+        <input id="noteFilename" type="text" value="admin_panel_notes.md" maxlength="100" autocomplete="off">
+      </div>
+      <div class="button-grid">
+        <button id="openNotesAppBtn" class="btn primary wide" type="button">Open in Xiaomi Notes</button>
+        <button id="shareNoteBtn" class="btn" type="button">Share to any app</button>
+        <button id="copyNoteBtn" class="btn" type="button">Copy</button>
+        <button id="saveNoteBtn" class="btn" type="button">Save on tablet</button>
+        <button id="downloadNoteBtn" class="btn" type="button">Download .md</button>
+      </div>
+      <p id="notesTargetHint" class="hint">
+        “Open in Xiaomi Notes” dabao: Android share/intent khulega aur ye Hinglish note wahan
+        pre-filled ho jayega. Ek extra tap Android security ke liye zaroori hai.
+      </p>
+      <div class="saved-notes-wrap">
+        <h3>Saved on this tablet</h3>
+        <div id="savedNotes" class="saved-notes"></div>
+      </div>
+    </section>
+
+    <details class="card settings-card">
+      <summary><strong>Backend settings</strong> <span class="muted small">(for separate hosting)</span></summary>
+      <p class="hint">
+        Agar frontend aur backend alag platforms par host ho rahe hain, to yahan Render backend
+        ka URL daalo. Same Render service use kar rahe ho to input khali chhodo.
+      </p>
+      <div class="field-row stacked">
+        <label for="apiBaseInput">Backend URL</label>
+        <input id="apiBaseInput" type="url" inputmode="url" placeholder="https://your-service.onrender.com" autocomplete="off">
+      </div>
+      <div class="button-grid">
+        <button id="saveApiBtn" class="btn" type="button">Save URL</button>
+        <button id="resetApiBtn" class="btn ghost" type="button">Use same domain</button>
+      </div>
+      <p id="apiStatus" class="hint" aria-live="polite"></p>
+    </details>
+  </main>
+
+  <footer class="footer">
+    <span>VakkiAI Web • API key server-side • Hinglish notes stay on your device</span>
+    <span id="footerMode">Live mode</span>
+  </footer>
+
+  <noscript>
+    <div class="noscript">JavaScript enable karo; VakkiAI Web browser me JavaScript se chalta hai.</div>
+  </noscript>
+
+  <script src="./config.js"></script>
+  <script src="./app.js"></script>
+</body>
+</html>
